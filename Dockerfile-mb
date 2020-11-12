@@ -1,0 +1,11 @@
+FROM rabbitmq:3.8.9-management-alpine
+
+RUN apk update \
+    && apk add dos2unix
+
+COPY ./docker/mb/init.sh /init.sh
+
+RUN chmod +x /init.sh \
+    && dos2unix /init.sh
+
+CMD ["/init.sh"]

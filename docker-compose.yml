@@ -1,0 +1,112 @@
+version: "3.8"
+
+services:
+    # Application: PHP FPM
+    app:
+        image: mage.app
+        build:
+            context: .
+        container_name: mage.app
+        depends_on:
+            - db
+            - ftse
+            - imdb
+        env_file:
+            - ./docker/.docker-env
+        links:
+            - db
+            - ftse
+            - imdb
+        networks:
+            - mage.net
+        volumes:
+            - .:/www:delegated
+
+    # Database: MySQL
+    db:
+        image: mysql:8.0.21
+        container_name: mage.db
+        env_file:
+            - ./docker/.docker-env
+        networks:
+            - mage.net
+        ports:
+            - "3306:3306"
+        volumes:
+            - mage.db:/var/lib/mysql
+
+    # Full text search engine: Elasticsearch
+    ftse:
+        image: elasticsearch:7.6.2
+        container_name: mage.ftse
+        environment:
+            - discovery.type=single-node
+        networks:
+            - mage.net
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        volumes:
+            - mage.ftse:/usr/share/elasticsearch/data
+
+    # Web server: NginX
+    http:
+        image: nginx:1.19.3-alpine
+        container_name: mage.http
+        depends_on:
+            - app
+            - db
+            - ftse
+            - imdb
+        links:
+            - app
+            - db
+            - ftse
+            - imdb
+        networks:
+            - mage.net
+        ports:
+            - "81:80"
+        volumes:
+            - .:/www:delegated
+            - ./docker/http/default.conf:/etc/nginx/conf.d/default.conf
+
+    # In-memory database: Redis
+    imdb:
+        image: redis:6.0.8-alpine3.12
+        container_name: mage.imdb
+        env_file:
+            - ./docker/.docker-env
+        networks:
+            - mage.net
+        ports:
+            - 6379:6379
+        volumes:
+            - mage.imdb:/data
+
+    # Message broker: RabbitMQ
+    mb:
+        image: mage.mb
+        build:
+            context: .
+            dockerfile: Dockerfile-mb
+        container_name: mage.mb
+        env_file:
+            - ./docker/.docker-env
+        hostname: mage.mb
+        networks:
+            - mage.net
+        ports:
+            - 5672:5672
+            - 15672:15672
+        volumes:
+            - mage.mb:/var/lib/rabbitmq
+
+networks:
+    mage.net:
+
+volumes:
+    mage.db:
+    mage.ftse:
+    mage.imdb:
+    mage.mb:
