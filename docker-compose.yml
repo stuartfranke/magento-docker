@@ -24,7 +24,7 @@ services:
 
     # Database: MySQL
     db:
-        image: mysql:8.0.21
+        image: mysql:8.0.22
         container_name: mage.db
         env_file:
             - ./docker/.docker-env
@@ -51,7 +51,7 @@ services:
 
     # Web server: NginX
     http:
-        image: nginx:1.19.3-alpine
+        image: nginx:1.19.4-alpine
         container_name: mage.http
         depends_on:
             - app
@@ -73,7 +73,7 @@ services:
 
     # In-memory database: Redis
     imdb:
-        image: redis:6.0.8-alpine3.12
+        image: redis:6.0.9-alpine3.12
         container_name: mage.imdb
         env_file:
             - ./docker/.docker-env
