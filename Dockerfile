@@ -1,6 +1,7 @@
-FROM php:7.4.12-fpm-alpine3.12
+FROM php:7.4.15-fpm-alpine3.13
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    PATH="${PATH}" \
     WEB_GROUP=www-data \
     WEB_ROOT=/www \
     WEB_USER=www-data \
@@ -54,6 +55,8 @@ RUN apk update --purge \
 
 # Copy PHP config files
 COPY ./docker/app/conf.d/* /usr/local/etc/php/conf.d/
+
+COPY ./docker/app/php-fpm.d/* /usr/local/etc/php-fpm.d/
 
 COPY ./docker/app/php.ini /usr/local/etc/php
 
