@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3"
 
 services:
     # Application: PHP FPM
@@ -7,12 +7,8 @@ services:
         build:
             context: .
         container_name: mage.app
-        depends_on:
-            - db
-            - ftse
-            - imdb
         env_file:
-            - ./docker/.docker-env
+            - ./docker/.env
         links:
             - db
             - ftse
@@ -20,21 +16,23 @@ services:
         networks:
             - mage.net
         volumes:
-            - .:/www:delegated
+            - nfsmount:/www
+            - ~/.ssh:/root/.ssh
+            - ~/.composer/cache:/root/.composer/cache
 
     # Database: MySQL
     db:
-        image: mysql:8.0.22
+        image: mysql:8.0.23
         container_name: mage.db
         env_file:
-            - ./docker/.docker-env
+            - ./docker/.env
         networks:
             - mage.net
         ports:
             - "3306:3306"
         volumes:
             - mage.db:/var/lib/mysql
-
+		command: mysqld --innodb-buffer-pool-size=384M
     # Full text search engine: Elasticsearch
     ftse:
         image: elasticsearch:7.6.2
@@ -51,13 +49,8 @@ services:
 
     # Web server: NginX
     http:
-        image: nginx:1.19.4-alpine
+        image: nginx:1.19.6-alpine
         container_name: mage.http
-        depends_on:
-            - app
-            - db
-            - ftse
-            - imdb
         links:
             - app
             - db
@@ -66,17 +59,20 @@ services:
         networks:
             - mage.net
         ports:
-            - "81:80"
+            - "80:80"
+            - "443:443"
         volumes:
-            - .:/www:delegated
+            - nfsmount:/www
             - ./docker/http/default.conf:/etc/nginx/conf.d/default.conf
+            - ./docker/http/certificates/dev.mage.crt:/usr/local/etc/nginx/ssl/dev.mage.crt
+            - ./docker/http/certificates/dev.mage.key:/usr/local/etc/nginx/ssl/dev.mage.key
 
     # In-memory database: Redis
     imdb:
-        image: redis:6.0.9-alpine3.12
+        image: redis:6.0.10-alpine3.13
         container_name: mage.imdb
         env_file:
-            - ./docker/.docker-env
+            - ./docker/.env
         networks:
             - mage.net
         ports:
@@ -92,7 +88,7 @@ services:
             dockerfile: Dockerfile-mb
         container_name: mage.mb
         env_file:
-            - ./docker/.docker-env
+            - ./docker/.env
         hostname: mage.mb
         networks:
             - mage.net
@@ -106,6 +102,12 @@ networks:
     mage.net:
 
 volumes:
+    nfsmount:
+        driver: local
+        driver_opts:
+            type: nfs
+            o: addr=host.docker.internal,rw,nolock,hard,nointr,nfsvers=3
+            device: ":${PWD}"
     mage.db:
     mage.ftse:
     mage.imdb:
