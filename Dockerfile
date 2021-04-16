@@ -1,4 +1,4 @@
-FROM php:7.4.15-fpm-alpine3.13
+FROM php:7.4.16-fpm-alpine3.13
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PATH="${PATH}" \

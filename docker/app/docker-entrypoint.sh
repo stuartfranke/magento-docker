@@ -28,7 +28,8 @@ if [ "${UPDATE_UID_GID}" -eq "1" ]; then
     echo "Docker: uid = ${DOCKER_UID}, gid = ${DOCKER_GID}"
     echo "Incumbent: user = ${INCUMBENT_USER}, group = ${INCUMBENT_GROUP}"
 
-    # Once we've established the IDs and incumbent IDs then we need to free them up (if necessary) and then make the change to www-data.
+    # Once we've established the ids and incumbent ids then we need to free them
+    # up (if necessary) and then make the change to www-data.
     apk update &&
         apk --no-cache add shadow
 

@@ -23,6 +23,8 @@ services:
     # Database: MySQL
     db:
         image: mysql:8.0.23
+        cap_add:
+            - SYS_NICE
         container_name: mage.db
         env_file:
             - ./docker/.env
@@ -32,7 +34,7 @@ services:
             - "3306:3306"
         volumes:
             - mage.db:/var/lib/mysql
-		command: mysqld --innodb-buffer-pool-size=384M
+		command: mysqld --innodb-buffer-pool-size=1024M
     # Full text search engine: Elasticsearch
     ftse:
         image: elasticsearch:7.6.2
